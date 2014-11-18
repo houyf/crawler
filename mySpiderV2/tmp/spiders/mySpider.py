@@ -308,10 +308,10 @@ class MySpider(CrawlSpider):
             # item['title'] = response.xpath('//div[@id="news_tittle"]/h1/text()')[0].extract()
             # item['content'] = response.xpath('//div[@id="news_content"]')[0].extract()
 
-        #js
-        # elif(url.find('sanyushe.sysu.edu.cn') != -1) :
-            # item['title'] = response.xpath('//div[@id="news_tittle"]/h1/text()')[0].extract()
-            # item['content'] = response.xpath('//div[@id="news_content"]')[0].extract()
+        #js ajax
+        elif(url.find('sanyushe.sysu.edu.cn') != -1) :
+            item['title'] = response.xpath('//div[@id="news_tittle"]/h1/text()')[0].extract()
+            item['content'] = response.xpath('//div[@id="news_content"]')[0].extract()
 
         # not all
         elif(url.find('study.sysu.edu.cn') != -1) :
@@ -332,24 +332,42 @@ class MySpider(CrawlSpider):
     #get all links of the  page
     def getUrlList(self, response):
         base_url = get_base_url(response)
-        urlList = response.xpath('//a/@href').extract()
+        html = response.body
+        left = right =0
+        urlList = []
+        while(True):
+            left = html.find('src', right)
+            if(left == -1):
+                break
+            a = html.find("'", left)
+            b = html.find('"', left)
+            if(a == -1) :
+                left = b
+            elif(b == -1):
+                left = a
+            else:
+                left = min(a, b)
+            if(left == -1):
+                break
+            right = html.find(html[left], left+1)
+            if(right == -1) :
+                break
+            urlList.append(html[left+1:right])
         abs_urlList = []
-        filter = ['pdf', 'jpg', 'jpeg', 'gif', 'doc', 'docx']
         for rel_url in urlList:
-            b = True
-            for str in filter :
-                if(rel_url.find(str) != -1):
-                    b = False
-                    break
-            if(b):
+            if(rel_url.find('.js')!= -1):
                 abs_urlList.append(urljoin_rfc(base_url, rel_url))
-
+        lx = SgmlLinkExtractor()
+        urls = lx.extract_links(response)
+        for i in urls:
+            abs_urlList.append(i.url)
         return abs_urlList
+
 
 
 ###################TEST#####################
     def test_startUrl(self):
-        return ['http://csirt.sysu.edu.cn']
+        return ['http://sanyushe.sysu.edu.cn']
 
     def test_allowedDomains(self):
-        return ['csirt.sysu.edu.cn']
+        return ['sanyushe.sysu.edu.cn']
