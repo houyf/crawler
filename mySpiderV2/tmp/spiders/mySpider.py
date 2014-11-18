@@ -34,7 +34,7 @@ class MySpider(CrawlSpider):
 
     def isArticle(self, url):
 
-        pattern_list = [r'/(\d+)\..*', r'newsid', 'catid=\d+&id=\d+']
+        pattern_list = [r'\d+\..*', r'newsid', 'catid=\d+&id=\d+']
         pattern_list.append(r'ObjID=\d+&SubjectID=\d+') #im.sysu.edu.cn
         pattern_list.append(r'articleid=\d+') # gms.sysu.edu.cn
         pattern_list.append(r'pId=\d+&no=') #sist.sysu.edu.cn
@@ -45,6 +45,7 @@ class MySpider(CrawlSpider):
         pattern_list.append(r'id=\d+') #career.sysu.edu.cn
         pattern_list.append(r'news_id') #sanyushe.sysu.edu.cn
         pattern_list.append(r'announcement') #http://csirt.sysu.edu.cn
+        pattern_list.append('archives/\d+') #http://hemclecture.org
 
         for pattern in pattern_list:
             matchObj = re.search(pattern, url, re.M|re.I)
@@ -179,19 +180,20 @@ class MySpider(CrawlSpider):
             item['title'] =  response.xpath('//div[@class="cons article"]/h3/text()')[0].extract()
             item['content'] = response.xpath('//div[@class="cons_detail"]')[0].extract()
 
-        # 我去，是gbk编码
-        # elif(url.find('www.zdkqyy.com') != -1) :
-            # item['title'] =  response.xpath('//tr')[1].xpath('td')[0].xpath('div')[0].xpath('div')[1]
-            # item['content'] = response.xpath('//tr')[1].xpath('td')[0].xpath('div')[0].xpath('div')[2]
+        #我去，是gbk编码
+        elif(url.find('www.zdkqyy.com') != -1) :
+            item['title'] =  response.xpath('//tr')[1].xpath('td')[0].\
+            xpath('div')[0].xpath('div')[1].xpath('span/text()')[0].extract()
+            item['content'] = response.xpath('//tr')[1].xpath('td')[0].xpath('div')[0].xpath('div')[2].extract()
 
         elif(url.find('sps.sysu.edu.cn') != -1) :
             item['title'] =   response.xpath('//div[@class="contWrap"]/h2/text()')[0].extract()
             item['content'] = response.xpath('//div[@class="contWrap"]/div[@class="cont"]')[0].extract()
 
-        #我去，这个真够坑爹, gbk
-        elif(url.find('im.sysu.edu.cn') != -1) :
-            item['title'] =  response.xpath('/html/body/table')[1].xpath('tbody/tr')[1].xpath('td/table/tr/td/font/strong/text()')[0].extract()
-            item['content'] = response.xpath('/html/body/table')[1].xpath('tbody/tr')[1].xpath('td/table/tr')[2].xpath('td/span')[0].extract()
+        #我去，这个真够坑爹, gbk, 而且都是通过js触发去抓取的(post)
+        # elif(url.find('im.sysu.edu.cn') != -1)
+            # item['title'] =  response.xpath('/html/body/table')[1].xpath('tbody/tr')[1].xpath('td/table/tr/td/font/strong/text()')[0].extract()
+            # item['content'] = response.xpath('/html/body/table')[1].xpath('tbody/tr')[1].xpath('td/table/tr')[2].xpath('td/span')[0].extract()
 
         #我擦，网络中心你他们能规范下文章url命名吗？
         # elif(url.find('helpdesk.sysu.edu.cn/') != -1) :
@@ -277,11 +279,9 @@ class MySpider(CrawlSpider):
             item['title'] = response.xpath('//div[@id="cont"]/h1/text()')[0].extract()
             item['content'] =  response.xpath('//div[@id="cont"]')[0].extract()
 
-
-        #kakakakakakakkaka
-        # elif(url.find('hemclecture.org') != -1) :
-            # item['title'] = response.xpath('//div[@id="cont"]/h1/text()')[0].extract()
-            # item['content'] =  response.xpath('//div[@id="cont"]')[0].extract()
+        elif(url.find('hemclecture.org') != -1) :
+            item['title'] = response.xpath('//*[@class="entry-title"]/text()')[0].extract()
+            item['content'] =  response.xpath('//*[@class="entry-content"]')[0].extract()
 
         #content, content clearfix
         elif(url.find('zdtw.sysu.edu.cn') != -1) :
@@ -318,9 +318,10 @@ class MySpider(CrawlSpider):
             item['title'] = response.xpath('//*[@class="rneirong2"]/p/span/text()')[0].extract()
             item['content'] =  response.xpath('//*[@class="MsoNormal"]')[0].extract()
 
-        # elif(url.find('csirt.sysu.edu.cn') != -1) :
-            # item['title'] = response.xpath('//*[@class="rneirong2"]/p/span/text()')[0].extract()
-            # item['content'] =  response.xpath('//*[@class="MsoNormal"]')[0].extract()
+        #这个网站的命名不太符合常规啊
+        elif(url.find('csirt.sysu.edu.cn') != -1) :
+            item['title'] = response.xpath('//*[@id="page"]/h2[@class="contentheading"]/text()')[0].extract()
+            item['content'] =  response.xpath('//*[@id="page"]')[0].extract()
 
         # elif(url.find('study.sysu.edu.cn') != -1) :
             # item['title'] = response.xpath('//*[@class="rneirong2"]/p/span/text()')[0].extract()
@@ -361,13 +362,16 @@ class MySpider(CrawlSpider):
         urls = lx.extract_links(response)
         for i in urls:
             abs_urlList.append(i.url)
+        # for url in abs_urlList:
+            # print url
+        # exit()
         return abs_urlList
-
-
 
 ###################TEST#####################
     def test_startUrl(self):
-        return ['http://sanyushe.sysu.edu.cn']
+        return ['http://hemclecture.org']
+
 
     def test_allowedDomains(self):
-        return ['sanyushe.sysu.edu.cn']
+        return ['hemclecture.org']
+
