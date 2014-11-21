@@ -30,10 +30,10 @@ class MongoPipeline(object):
         if (isinstance(item, UrlItem)):
             # update or insert the UrlItem
             if(item['urlhash']  in self.urlhash):
-                print '1111111111111111111111111111111111'
+                print '%s 列表页发生更改' % item['url']
                 self.updateUrlItem(item)
             else :
-                print '22222222222222222222222222'
+                print '%s 是未收录的列表页'% item['url']
                 self.insertUrlItem(item)
 
         #if is the article
@@ -43,15 +43,8 @@ class MongoPipeline(object):
             item['title'] = item['title'].replace("'", "\'")
             item['content'] = item['content'].replace('"', '\"')
             item['content'] = item['content'].replace("'", "\'")
+            self.insertArtItem(item)
 
-            # 如果没有数据库没记录，则作为新文章插入
-            if( item['urlhash']  not  in self.urlhash) :
-                print 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-                self.insertArtItem(item)
-            #如果内容被修改，则修改原文章，但是发布时间别变
-            elif item['contenthash'] != self.urlhash[item['urlhash']]:
-                print 'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW'
-                self.updateArtItem(item)
         return item
 
     def insertArtItem(self, item):
@@ -78,15 +71,6 @@ class MongoPipeline(object):
             print sys.exc_info()
             raise DropItem("重复文章%s" % item)
 
-    #update ArtItem
-    def updateArtItem(self, item):
-        try :
-            #update c_urls
-            self.col_ref.update({'urlhash': item['urlhash']}, { '$set': {'contenthash': item['contenthash']}})
-            #update c_all_text
-            self.col_content.update({'url': item['link']}, { '$set':{'title': item['title'], 'content': item['content']}} )
-        except:
-            print sys.exc_info();
 
     #将所有已有的文章urlhash及其内容contenthash的哈希值 置于urlhash
     def setUrlhash(self):
@@ -111,7 +95,6 @@ class MongoPipeline(object):
 
     def  updateUrlItem(self, item):
         try:
-            print 'hehhehhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh'
             self.col_ref.update({'urlhash': item['urlhash']}, {'$set' : {'contenthash': item['contenthash']}})
         except:
             print sys.exc_info()

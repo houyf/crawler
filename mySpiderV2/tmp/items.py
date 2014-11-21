@@ -18,6 +18,11 @@ class ArtItem(scrapy.Item):
     # def __str__(self):
         # print '%s为文章' % self.link
 
+#无法匹配的文章
+class RubbishItem(scrapy.Item):
+    url = scrapy.Field()
+    urlhash = scrapy.Field()
+    contenthash = scrapy.Field()
 
 class UrlItem(scrapy.Item):
     url = scrapy.Field()

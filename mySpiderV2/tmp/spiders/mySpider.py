@@ -59,22 +59,17 @@ class MySpider(CrawlSpider):
         #hash and fielter
         urlhash = hashlib.md5(response.url.decode(response.encoding).encode('utf-8')).hexdigest()
         contenthash =  hashlib.md5(response.body.decode(response.encoding).encode('utf-8')).hexdigest()
-        if(urlhash  in self.filter_urls and self.filter_urls[urlhash] == contenthash):
-            print 'URL %s 内容没有发生改变 ' % response.url
-            raise StopIteration
 
         #article
-        if self.isArticle(response.url):
-            print 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-            item =  self.handleArt(response)
-            if(item == None):
-                raise StopIteration
-            else :
-                yield item
-
+        if self.isArticle(response.url) :
+            if urlhash  not  in self.filter_urls:
+                item =  self.handleArt(response)
+                if(item == None):
+                    raise StopIteration
+                else :
+                    yield item
         #link to follow
-        else :
-            print 'UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU'
+        elif (urlhash  in self.filter_urls and self.filter_urls[urlhash] != contenthash) :
             urlList = self.getUrlList(response)
             for url in urlList:
                 yield Request(url)
@@ -85,7 +80,10 @@ class MySpider(CrawlSpider):
             item['contenthash'] = hashlib.md5(response.body.decode(response.encoding).encode('utf-8')).hexdigest()
             yield item
             raise StopIteration
+        else :
+            print 'URL %s 内容没有发生改变 ' % response.url
 
+        raise StopIteration
     #从数据库获取开始url
     def startUrls(self):
 
@@ -324,41 +322,13 @@ class MySpider(CrawlSpider):
             return None
         return item
 
-    #get all links of the  page
+    #获取page所有绝对路径的链接
     def getUrlList(self, response):
-        base_url = get_base_url(response)
-        html = response.body
-        left = right =0
-        urlList = []
-        while(True):
-            left = html.find('src', right)
-            if(left == -1):
-                break
-            a = html.find("'", left)
-            b = html.find('"', left)
-            if(a == -1) :
-                left = b
-            elif(b == -1):
-                left = a
-            else:
-                left = min(a, b)
-            if(left == -1):
-                break
-            right = html.find(html[left], left+1)
-            if(right == -1) :
-                break
-            urlList.append(html[left+1:right])
         abs_urlList = []
-        for rel_url in urlList:
-            if(rel_url.find('.js')!= -1):
-                abs_urlList.append(urljoin_rfc(base_url, rel_url))
         lx = SgmlLinkExtractor()
         urls = lx.extract_links(response)
         for i in urls:
             abs_urlList.append(i.url)
-        # for url in abs_urlList:
-            # print url
-        # exit()
         return abs_urlList
 
 ###################TEST#####################
