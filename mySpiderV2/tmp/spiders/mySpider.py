@@ -20,29 +20,30 @@ from scrapy.conf import settings
 class MySpider(CrawlSpider):
 
     def __init__(self):
-        super(MySpider, self).__init__()
-        # self.start_urls = self.startUrls()
-        # self.allowed_domains = self.allowedDomains()
         self.conn = pymongo.Connection(settings['MONGO_SERVER'], settings['MONGO_PORT'])
         self.db = self.conn[settings['MONGO_DB']]
+        self.db.authenticate(settings['MONGO_USR'], settings['MONGO_PWD'])
         self.col = self.db['c_urls']
+        super(MySpider, self).__init__()
+        self.start_urls = self.startUrls()
+        self.allowed_domains = self.allowedDomains()
         self.filter_urls = self.filterUrls()
-        self.start_urls = self.test_startUrl()
-        self.allowed_domains = self.test_allowedDomains()
+        # self.start_urls = self.test_startUrl()
+        # self.allowed_domains = self.test_allowedDomains()
 
     name = 'MySpider'
 
     def isArticle(self, url):
 
         pattern_list = [r'\d+\..*', r'newsid', 'catid=\d+&id=\d+']
-        pattern_list.append(r'ObjID=\d+&SubjectID=\d+') #im.sysu.edu.cn
+        pattern_list.append(r'ObjID=\d+') #im.sysu.edu.cn
         pattern_list.append(r'articleid=\d+') # gms.sysu.edu.cn
         pattern_list.append(r'pId=\d+&no=') #sist.sysu.edu.cn
         pattern_list.append(r'no=.*?&pId=\d+')
         pattern_list.append(r'CategoryID=\d+&TreeID=\d+&id=\d+') #yxjwc.sysu.edu.cn
-        pattern_list.append(r'news_id=\d+') #bwc.sysu.edu.cn
+        # pattern_list.append(r'news_id=') #bwc.sysu.edu.cn
         pattern_list.append(r'p=\d+') #http://zdtw.sysu.edu.cn
-        pattern_list.append(r'id=\d+') #career.sysu.edu.cn
+        pattern_list.append(r'\?id=\d+') #career.sysu.edu.cn
         pattern_list.append(r'news_id') #sanyushe.sysu.edu.cn
         pattern_list.append(r'announcement') #http://csirt.sysu.edu.cn
         pattern_list.append('archives/\d+') #http://hemclecture.org
@@ -87,29 +88,22 @@ class MySpider(CrawlSpider):
 
     #从数据库获取开始url
     def startUrls(self):
-        db = MySQLdb.connect(host="localhost", user="houyf", passwd="Beyond", db="utipsV2")
-        cursor = db.cursor()
-        cursor.execute('set names "utf8"')
-        sql = 'select domain from c_seed limit 1'
-        cursor.execute(sql)
-        data = cursor.fetchall()
-        list = []
+
+        col = self.db['c_seed']
+        data = col.find({}, {'domain':1, '_id':0})
+        list =[]
         for row in data :
-            url = self.fixedUrl(row[0])
-            list.append(url)
+            list.append( 'http://'+row['domain'])
         return list
 
     #抓取的域的范围
     def allowedDomains(self):
-        db = MySQLdb.connect(host="localhost", user="houyf", passwd="Beyond", db="utipsV2")
-        cursor = db.cursor()
-        cursor.execute('set names "utf8"')
-        sql = 'select domain from c_seed'
-        cursor.execute(sql)
-        data = cursor.fetchall()
+
+        col = self.db['c_seed']
+        data = col.find({}, {'domain':1, '_id':0})
         list = []
         for row in data :
-            list.append(row[0])
+            list.append(row['domain'])
         return list
 
     #选择url哈希和url对应内容的哈希，都是32位的字符串
@@ -369,9 +363,9 @@ class MySpider(CrawlSpider):
 
 ###################TEST#####################
     def test_startUrl(self):
-        return ['http://hemclecture.org']
+        return ['http://jwc.sysu.edu.cn']
 
 
     def test_allowedDomains(self):
-        return ['hemclecture.org']
+        return ['jwc.sysu.edu.cn']
 

@@ -19,6 +19,7 @@ class MongoPipeline(object):
     def __init__(self):
         self.conn = pymongo.Connection(settings['MONGO_SERVER'], settings['MONGO_PORT'])
         self.db = self.conn[settings['MONGO_DB']]
+        self.db.authenticate(settings['MONGO_USR'], settings['MONGO_PWD'])
         self.col_content = self.db['c_all_text']
         self.col_ref = self.db['c_urls']
         self.urlhash = self.setUrlhash()
@@ -61,6 +62,7 @@ class MongoPipeline(object):
             sql['content'] = item['content']
             sql['url'] = item['link']
             sql['add_time'] = str(datetime.date.today())
+            sql['is_sent'] =0; #默认还没发给后台
             self.col_content.insert(sql)
 
             #insert into c_urls
@@ -82,7 +84,7 @@ class MongoPipeline(object):
             #update c_urls
             self.col_ref.update({'urlhash': item['urlhash']}, { '$set': {'contenthash': item['contenthash']}})
             #update c_all_text
-            self.col_content({'url': item['url']}, {'title': item['title'], 'content': item['content']})
+            self.col_content.update({'url': item['link']}, { '$set':{'title': item['title'], 'content': item['content']}} )
         except:
             print sys.exc_info();
 
