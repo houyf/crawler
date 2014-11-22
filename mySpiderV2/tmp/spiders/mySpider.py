@@ -69,7 +69,7 @@ class MySpider(CrawlSpider):
                 else :
                     yield item
         #link to follow
-        elif (urlhash  in self.filter_urls and self.filter_urls[urlhash] != contenthash) :
+        elif (urlhash  not in self.filter_urls or self.filter_urls[urlhash] != contenthash) :
             urlList = self.getUrlList(response)
             for url in urlList:
                 yield Request(url)
