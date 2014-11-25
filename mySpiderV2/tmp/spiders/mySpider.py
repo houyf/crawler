@@ -35,7 +35,7 @@ class MySpider(CrawlSpider):
 
     def isArticle(self, url):
 
-        pattern_list = [r'\d+\..*', r'newsid', 'catid=\d+&id=\d+']
+        pattern_list = [r'/\d+\..*', r'newsid', 'catid=\d+&id=\d+']
         pattern_list.append(r'ObjID=\d+') #im.sysu.edu.cn
         pattern_list.append(r'articleid=\d+') # gms.sysu.edu.cn
         pattern_list.append(r'pId=\d+&no=') #sist.sysu.edu.cn
@@ -157,17 +157,18 @@ class MySpider(CrawlSpider):
             item['content'] = response.xpath('//div[@class="cons_detail"]').extract()[0]
 
         elif(url.find('egs.sysu.edu.cn') != -1) :
-            item['title'] = response.xpath('//h1')[0].extract()
+            item['title'] = response.xpath('//h1/text()')[0].extract()
             item['content'] = response.xpath('//*[@id="text"]')[0].extract()
 
         elif(url.find('ss.sysu.edu.cn') != -1) :
-            item['title'] =  response.xpath('//div[@class="article"]/div[@class="articleTitle"]')[0].extract()
+            item['title'] =  response.xpath('//div[@class="article"]/div[@class="articleTitle"]/text()')[0].extract()
             item['content'] = response.xpath('//div[@class="article"]/div[@class="articleContent"]')[0].extract()
 
         elif(url.find('scd.sysu.edu.cn') != -1) :
             item['title'] =  response.xpath('//*[@class="ArtTitle"]/text()')[0].extract()
             item['content'] = response.xpath('//*[@class="ArtCont"]')[0].extract()
 
+        # should try aaain
         elif(url.find('zssom.sysu.edu.cn') != -1) :
             item['title'] =  response.xpath('//div[@class="cons article"]/h3/text()')[0].extract()
             item['content'] = response.xpath('//div[@class="cons_detail"]')[0].extract()
@@ -202,7 +203,7 @@ class MySpider(CrawlSpider):
 
 
         elif(url.find('gms.sysu.edu.cn') != -1) :
-            item['title'] =   response.xpath('//*[@class="cattitle2"]')[0].extract()
+            item['title'] =   response.xpath('//*[@class="cattitle2"]/text()')[0].extract()
             item['content'] = response.xpath('//*[@class="content"]')[0].extract()
 
         #the site can't open nima
@@ -210,7 +211,7 @@ class MySpider(CrawlSpider):
 
         elif(url.find('sist.sysu.edu.cn') != -1) :
             try:
-                item['title'] =   response.xpath('//b/font[@size="3"]')[0].extract()
+                item['title'] =   response.xpath('//b/font[@size="3"]/text()')[0].extract()
                 item['content'] = response.xpath('//*[@class="MsoNormal"]')[0].xpath('parent::*')[0].extract()
             except:
                 print '%s Not an article' %response.url
@@ -229,12 +230,8 @@ class MySpider(CrawlSpider):
         #http://lifescience.sysu.edu.cn/main/news/news.aspx?pId=113&no=83e44c3b-6fbe-4098-aff5-7569d15bc6a3
         #http://lifescience.sysu.edu.cn/main/news/news.aspx?pId=31&no=d23e3d8b-3d8d-4051-bf3e-e454ef6c0158
         elif(url.find('lifescience.sysu.edu.cn') != -1) :
-            item['title'] = response.xpath('//b/font[@size="5"]')[0].extract()
+            item['title'] = response.xpath('//b/font[@size="5"]/text()')[0].extract()
             item['content'] = response.xpath('//*[@class="MsoNormal"]/parent::*')[0].extract()
-
-        elif(url.find('nursing.sysu.edu.cn') != -1) :
-            item['title'] = response.xpath('//*[@class="title2"]/text()')[0].extract()
-            item['content'] = response.xpath('//*[@class="bd"]')[0].extract()
 
         #跟我说建设中，呵呵
         # elif(url.find('home3.sysu.edu.cn') != -1) :
@@ -247,7 +244,7 @@ class MySpider(CrawlSpider):
 
         #草居然有些font size 还有　3 和　４　的
         elif(url.find('yxjwc.sysu.edu.cn') != -1) :
-            item['title'] = response.xpath('//div[@class="title"]')[0].extract()
+            item['title'] = response.xpath('//div[@class="title"]/text()')[0].extract()
             item['content'] = response.xpath('//font[@size]')[0].extract()
 
         elif(url.find('www.aijingsai.com') != -1) :

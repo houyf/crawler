@@ -28,7 +28,7 @@ ITEM_PIPELINES = {
             # 'scrapy.contrib.schedulermiddleware.duplicatesfilter.DuplicatesFilterMiddleware': 500,
 # }
 # DUPEFILTER_DEBUG = True
-DEPTH_LIMIT =1
+DEPTH_LIMIT =2
 #默认是深度优先，一下可以设置为BFS
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeue.PickleFifoDiskQueue'
