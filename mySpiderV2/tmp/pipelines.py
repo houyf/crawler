@@ -12,17 +12,26 @@ import hashlib
 import datetime
 import pymongo
 from  scrapy.conf import settings
-
+import MySQLdb
+from twisted.enterprise import adbapi
+from scrapy.contrib.pipeline.images import ImagesPipeline
+from scrapy import Request
+import hashlib
 
 #连接数据库
-class MongoPipeline(object):
+class MySQLStorePipeline(object):
     def __init__(self):
-        self.conn = pymongo.Connection(settings['MONGO_SERVER'], settings['MONGO_PORT'])
-        self.db = self.conn[settings['MONGO_DB']]
-        self.db.authenticate(settings['MONGO_USR'], settings['MONGO_PWD'])
-        self.col_content = self.db['c_all_text']
-        self.col_ref = self.db['c_urls']
-        self.urlhash = self.setUrlhash()
+        self.dbpool = adbapi.ConnectionPool('MySQLdb',
+            db = 'utipsV2',
+            user = 'houyf',
+            passwd = 'Beyond',
+            cursorclass = MySQLdb.cursors.DictCursor,
+            charset = 'utf8',
+            use_unicode = False
+        )
+
+        self.urlhash = {}
+        self.dbpool.runInteraction(self.setUrlhash)
 
     #pipeline默认调用
     def process_item(self, item, spider):
@@ -31,10 +40,10 @@ class MongoPipeline(object):
             # update or insert the UrlItem
             if(item['urlhash']  in self.urlhash):
                 print '%s 列表页发生更改' % item['url']
-                self.updateUrlItem(item)
+                self.dbpool.runInteraction(self.updateUrlItem, item)
             else :
                 print '%s 是未收录的列表页'% item['url']
-                self.insertUrlItem(item)
+                self.dbpool.runInteraction(self.insertUrlItem, item)
 
         #if is the article
         else :
@@ -43,58 +52,64 @@ class MongoPipeline(object):
             item['title'] = item['title'].replace("'", "\'")
             item['content'] = item['content'].replace('"', '\"')
             item['content'] = item['content'].replace("'", "\'")
-            self.insertArtItem(item)
+            self.dbpool.runInteraction(self.insertArtItem, item)
 
         return item
 
-    def insertArtItem(self, item):
+    def insertArtItem(self, tx, item):
         try :
-            # insert into c_all_text
-            sql = {}
-            sql['title'] = item['title']
-            sql['content'] = item['content']
-            sql['url'] = item['link']
-            sql['add_time'] = str(datetime.date.today())
-            sql['is_sent'] =0; #默认还没发给后台
-            self.col_content.insert(sql)
-
-            #insert into c_urls
-            sql = {}
-            sql['url'] = item['link']
-            sql['urlhash'] = item['urlhash']
-            sql['contenthash'] = item['contenthash']
-            sql['crawl_time'] = str(datetime.date.today())
-            self.col_ref.insert(sql)
-
+            #插入记录到c_all_text
+            tx.execute('insert into `c_all_text`(`title`, `content`, `url`, `add_time`) \
+            values (%s, %s, %s, %s)', (item['title'], item['content'], item['link'], str(datetime.date.today())))
+            #插入记录到c_urls
+            sql = 'insert into c_urls(`url`, `urlhash`, `contenthash`, `crawl_time`)' \
+            + 'values("%s", "%s", "%s", "%s")' % (item['link'], item['urlhash'], item['contenthash'], str(datetime.date.today()) )
+            tx.execute(sql)
 
         except :
             print sys.exc_info()
             raise DropItem("重复文章%s" % item)
 
-
     #将所有已有的文章urlhash及其内容contenthash的哈希值 置于urlhash
-    def setUrlhash(self):
-        data = self.col_ref.find({}, {'urlhash':1, 'contenthash':1})
-        urlhash = {}
+    def setUrlhash(self, tx):
+        sql = 'select `urlhash`, `contenthash`  from c_urls'
+        tx.execute(sql)
+        data = tx.fetchall()
         for row in data :
-            urlhash[row['urlhash']] = row['contenthash']
-        return urlhash
+            self.urlhash[row['urlhash']] = row['contenthash']
 
-    def insertUrlItem(self, item):
+    def insertUrlItem(self, tx, item):
+        sql = 'insert into c_urls(`url`, `urlhash`, `contenthash`, `crawl_time`)' \
+        + 'values("%s", "%s", "%s", "%s")' % (item['url'], item['urlhash'], item['contenthash'], str(datetime.date.today()) )
+        tx.execute(sql)
 
-        #insert into c_urls
-        try:
-            sql = {}
-            sql['url'] = item['url']
-            sql['urlhash'] = item['urlhash']
-            sql['contenthash'] = item['contenthash']
-            sql['crawl_time'] = str(datetime.date.today())
-            self.col_ref.insert(sql)
-        except :
-            print sys.exc_info()
+    def  updateUrlItem(self, tx, item):
+        sql = 'update c_urls  ' + ' set `contenthash` = "%s" where `urlhash` = "%s" ' \
+        % ( item['contenthash'], item['urlhash'])
+        tx.execute(sql)
 
-    def  updateUrlItem(self, item):
-        try:
-            self.col_ref.update({'urlhash': item['urlhash']}, {'$set' : {'contenthash': item['contenthash']}})
-        except:
-            print sys.exc_info()
+
+#自定义图片处理管道
+class  ImagesPipeline(ImagesPipeline):
+
+    def get_media_requests(self, item, info):
+        for image_url in item['image_urls']:
+            yield Request(image_url)
+
+    def item_completed(self, results, item, info):
+        print results
+        image_paths = [hashlib.new('md5', x['url']).hexdigest() for ok, x in results if ok]
+
+        if not image_paths:
+            raise DropItem('该文章没有图片')
+        item['image_paths'] = image_paths
+        return item
+
+    #改写文件路径,用md5
+    def file_path(self, request, response=None, info=None):
+        # return  request.url.split('/')[-1]
+        return  hashlib.new('md5', request.url).hexdigest() + '.'  + request.url.split('.')[-1]
+
+
+
+

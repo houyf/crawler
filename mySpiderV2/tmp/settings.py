@@ -20,15 +20,31 @@ BOT_NAME = 'mySpider'
 SPIDER_MODULES = ['tmp.spiders']
 NEWSPIDER_MODULE = 'tmp.spiders'
 ITEM_PIPELINES = {
-        'tmp.pipelines.MongoPipeline':2,
+        # 'tmp.pipelines.MongoPipeline':2,
+        'tmp.pipelines.MySQLStorePipeline':2,
+        # 'scrapy.contrib.pipeline.images.ImagesPipeline':1,
+        'tmp.pipelines.ImagesPipeline' :1,
 }
+
+#图片存放路径
+IMAGES_STORE = '/home/houyf/crawler/mySpiderV2/images'
+#图片失效日期，可以防止下载之前已经下载过的图片过的
+IMAGES_EXPIRES = 90
+#图片缩略图
+# IMAGES_THUMBS = {
+        # 'small': (50, 50),
+        # 'big':(270, 270),
+# }
+
+
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'jwc (+http://www.yourdomain.com)'
 # SCHEDULER_MIDDLEWARES_BASE = {
             # 'scrapy.contrib.schedulermiddleware.duplicatesfilter.DuplicatesFilterMiddleware': 500,
 # }
 # DUPEFILTER_DEBUG = True
-DEPTH_LIMIT =2
+DEPTH_LIMIT = 2
 #默认是深度优先，一下可以设置为BFS
 DEPTH_PRIORITY = 1
 SCHEDULER_DISK_QUEUE = 'scrapy.squeue.PickleFifoDiskQueue'

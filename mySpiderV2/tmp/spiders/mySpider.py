@@ -16,6 +16,8 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 import pymongo
 from scrapy.conf import settings
+import MySQLdb
+from urlparse import urljoin
 
 class MySpider(CrawlSpider):
 
@@ -25,7 +27,8 @@ class MySpider(CrawlSpider):
         self.db.authenticate(settings['MONGO_USR'], settings['MONGO_PWD'])
         self.col = self.db['c_urls']
         super(MySpider, self).__init__()
-        self.start_urls = self.startUrls()
+        # self.start_urls = self.startUrls()
+        self.start_urls = ['http://bus.sysu.edu.cn/NewsContent.aspx?typeid=55e5a373-9d75-4375-b901-91fa72984342&newsid=64255b8f-5145-42fe-bc30-f3d96c882f5d']
         self.allowed_domains = self.allowedDomains()
         self.filter_urls = self.filterUrls()
         # self.start_urls = self.test_startUrl()
@@ -55,6 +58,7 @@ class MySpider(CrawlSpider):
         return None
 
     def parse(self, response):
+
         # log.start(logfile='/home/houyf/logfile',loglevel=log.DEBUG)
         #hash and fielter
         urlhash = hashlib.md5(response.url.decode(response.encoding).encode('utf-8')).hexdigest()
@@ -84,42 +88,48 @@ class MySpider(CrawlSpider):
             print 'URL %s 内容没有发生改变 ' % response.url
 
         raise StopIteration
+
+
     #从数据库获取开始url
     def startUrls(self):
-
-        col = self.db['c_seed']
-        data = col.find({}, {'domain':1, '_id':0})
-        list =[]
+        db = MySQLdb.connect(host="localhost", user="houyf", passwd="Beyond", db="utipsV2")
+        cursor = db.cursor()
+        cursor.execute('set names "utf8"')
+        sql = 'select domain from c_seed '
+        cursor.execute(sql)
+        data = cursor.fetchall()
+        list = []
         for row in data :
-            list.append( 'http://'+row['domain'])
+            url = self.fixedUrl(row[0])
+            list.append(url)
         return list
+
 
     #抓取的域的范围
     def allowedDomains(self):
-
-        col = self.db['c_seed']
-        data = col.find({}, {'domain':1, '_id':0})
+        db = MySQLdb.connect(host="localhost", user="houyf", passwd="Beyond", db="utipsV2")
+        cursor = db.cursor()
+        cursor.execute('set names "utf8"')
+        sql = 'select domain from c_seed'
+        cursor.execute(sql)
+        data = cursor.fetchall()
         list = []
         for row in data :
-            list.append(row['domain'])
+            list.append(row[0])
         return list
 
     #选择url哈希和url对应内容的哈希，都是32位的字符串
     def filterUrls(self) :
-        sql={}
-        sql['urlhash'] = 1
-        sql['contenturl'] = 1
-        data = self.col.find()
-        data = self.col.find({}, {'urlhash':1, 'contenthash':1})
-        print data
-        urlhash = {}
+        db = MySQLdb.connect(host="localhost", user="houyf", passwd="Beyond", db="utipsV2")
+        cursor = db.cursor()
+        cursor.execute('set names "utf8"')
+        sql = 'select urlhash, contenthash from c_urls'
+        cursor.execute(sql)
+        data = cursor.fetchall()
+        dict = {}
         for row in data :
-            try:
-                urlhash[row['urlhash']] = row['contenthash']
-            except:
-                print sys.exc_info()
-                continue
-        return urlhash
+            dict[row[0]] = row[1]
+        return dict
 
 
     def fixedUrl(self, url):
@@ -317,6 +327,9 @@ class MySpider(CrawlSpider):
             # item['content'] =  response.xpath('//*[@class="MsoNormal"]')[0].extract()
         else :
             return None
+
+        #图片列表
+        item['image_urls'] = self.getImageUrls(response)
         return item
 
     #获取page所有绝对路径的链接
@@ -327,6 +340,20 @@ class MySpider(CrawlSpider):
         for i in urls:
             abs_urlList.append(i.url)
         return abs_urlList
+
+    #获取页面中图片的url，同时注意路径要绝对化
+    def getImageUrls(self, response):
+        urls = response.xpath('//img/@src').extract()
+        size = len(urls)
+        #绝对化url
+        for i in range(0, size):
+            print urljoin(response.url, urls[i])
+            urls[i]=urljoin(response.url, urls[i])
+            print urls[i]
+        return urls
+
+
+
 
 ###################TEST#####################
     def test_startUrl(self):

@@ -14,6 +14,9 @@ class ArtItem(scrapy.Item):
     contenthash = scrapy.Field()
     link = scrapy.Field()
     urlhash = scrapy.Field()
+    image_urls = scrapy.Field()
+    images = scrapy.Field()
+    image_paths = scrapy.Field()
     pass
     # def __str__(self):
         # print '%s为文章' % self.link
@@ -29,3 +32,10 @@ class UrlItem(scrapy.Item):
     urlhash = scrapy.Field()
     contenthash = scrapy.Field()
     pass
+
+#图片
+class ImageItem(scrapy.Item):
+    image_urls = scrapy.Field()
+    images = scrapy.Field()
+    pass
+
