@@ -17,6 +17,8 @@ NEWSPIDER_MODULE = 'utips.spiders'
 ITEM_PIPELINES = {
     'utips.pipelines.MyImagesPipeline': 1,
     'utips.pipelines.MyFilesPipeline': 2,
+    # 'scrapy.contrib.pipeline.images.ImagesPipeline': 1,
+    # 'scrapy.contrib.pipeline.images.FilesPipeline': 2,
     'utips.pipelines.MongoStorePipeline': 800,
 }
 
