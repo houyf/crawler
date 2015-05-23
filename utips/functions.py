@@ -68,4 +68,17 @@ class LinkFilter(object):
         return tmp_set
 
 
+from urlparse import urljoin
+from urlparse import urlparse
+from urlparse import urlunparse
+from posixpath import normpath
+
+def myUrljoin(base, url):
+    """
+        根据refer的url为base,　将相对url转为绝对url
+    """
+    url1 = urljoin(base, url)
+    arr = urlparse(url1)
+    path = normpath(arr[2])
+    return urlunparse((arr.scheme, arr.netloc, path, arr.params, arr.query, arr.fragment))
 

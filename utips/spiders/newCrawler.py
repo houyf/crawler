@@ -8,6 +8,8 @@ from utips.functions import isArticle
 from utips.functions import parseArticle
 from utips.functions import LinkFilter
 from scrapy.contrib.linkextractors import LinkExtractor
+from utips.functions import myUrljoin
+
 
 def getWebsitesFromMongodb():
     import pymongo
@@ -20,7 +22,8 @@ def getWebsitesFromMongodb():
 
 class Crawler(CrawlSpider):
 
-    # start_urls = ['http://jwc.sysu.edu.cn/Item/8784.aspx']
+    # start_urls = ['http://jwc.sysu.edu.cn/Item/8714.aspx']
+    # download_delay = 2 
     start_urls = getWebsitesFromMongodb()
     allowed_domains = ["jwc.sysu.edu.cn"]
     name =  'newCrawler'
@@ -44,8 +47,8 @@ class Crawler(CrawlSpider):
             log.msg('{url} is a Article'.format(url=response.url), level=log.INFO) 
             art = ArticleItem()
             if parseArticle(response, art):
-                art['image_urls'] =  self.imageUrlsOfArticle(response)
-                art['file_urls'] =  self.fileUrlsOfArticle(response)
+                art['image_urls'] =  self.imageUrlsOfArticle(response, response)
+                art['file_urls'] =  self.fileUrlsOfArticle(response, response)
                 return art
             else:
                 raise StopIteration
@@ -55,32 +58,22 @@ class Crawler(CrawlSpider):
     def filterLinks(self, links):
         return filter(LinkFilter.duplicate , links) 
 
-    def imageUrlsOfArticle(self, contentSelc):        
+    def imageUrlsOfArticle(self, contentSelc, response):        
         urls = contentSelc.xpath('//a[@href]/@href').extract()
         image_urls = []            
         for url in urls:
             for e in self.__class__.image_extensions:
                 if url.find(e) != -1:
+                    url = myUrljoin(response.url, url)
                     image_urls.append(url)
         return image_urls
                     
-    def fileUrlsOfArticle(self, contentSelc):        
+    def fileUrlsOfArticle(self, contentSelc, response):        
         urls = contentSelc.xpath('//a[@href]/@href').extract()
         file_urls = []            
         for url in urls:
             for e in self.__class__.file_extensions:
                 if url.find(e) != -1:
+                    url = myUrljoin(response.url, url)
                     file_urls.append(url)
         return file_urls
-                
-          
-         
-
-
-
-
-
-
-
-
-
