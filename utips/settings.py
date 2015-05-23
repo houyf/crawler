@@ -84,3 +84,10 @@ IMAGES_STORE = '/home/houyf/Projects/crawler/utips/images'
 IMAGES_EXPIRES = 90
 IMAGES_DOMAIN = 'http://42.121.129.102:8089/crawl_images'
 FILES_STORE='/home/houyf/Projects/crawler/utips/files'
+
+# 禁止重试
+RETRY_ENABLED = False
+# 设置下载超时
+DOWNLOAD_TIMEOUT = 15
+# 禁止重定向
+REDIRECT_ENABLED = False
