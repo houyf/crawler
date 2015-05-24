@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+import time
 import pymongo
 conn = pymongo.Connection('localhost', 27017)
 db = conn['utipsV2']
 col = db['website']
 item = {}
-
 item['id']  = 1
 item['note'] = '教务处'
-item['INDEX'] = 'http://jwc.sysu.edu.cn/Index.aspx'
-item['DOMAIN'] = 'jwc.sysu.edu.cn'
+item['INDEX'] = ['http://jwc.sysu.edu.cn/Index.aspx']
+item['DOMAIN'] = ['jwc.sysu.edu.cn']
 item['LIST_URL_PATTERNS'] = [r'/Index\.aspx']
 item['ITEM_URL_PATTERNS'] = [r'/\d+\.aspx']
 item['ITEM_TITLE_PATTERNS'] = ['//h1/text()']
@@ -18,5 +18,6 @@ item['ITEM_CONTENT_PATTERNS'] = ['//div[@class="content"]']
 item['SITE_ENCODING'] = 'utf-8' 
 item['TABLE'] = 'jwc'
 item['LOG_FILE'] = '/tmp/logs/jwc.log'
+item['last_crawl_time'] = time.time() - 12*3600
 col.remove()
 col.insert(item)

@@ -8,15 +8,27 @@ from utips.functions import LinkFilter
 import utips.settings as settings
 from scrapy.contrib.linkextractors import LinkExtractor
 from utips.functions import myUrljoin
+from time import time
+import pymongo
 
 
 def fetchOneWebsiteConfig():
-    import pymongo
     conn = pymongo.Connection(settings.MONGO_SERVER, settings.MONGO_PORT)
     db = conn[settings.MONGO_DATABASE]
     col = db['website']
-    return col.find_one()
+    website_config = col.find_one({'last_crawl_time':{'$lt': time()-12*3600}})
+    if not website_config:
+        website_config = {}
+        website_config['LIST_URL_PATTERNS'] = []
+        website_config['ITEM_URL_PATTERNS'] = []
+        website_config['INDEX'] = []
+        website_config['DOMAIN'] = []
+        website_config['ITEM_TITLE_PATTERNS'] = []
+        website_config['ITEM_CONTENT_PATTERNS'] = []
+    else:
+        col.update({'_id':website_config['_id']}, {'last_crawl_time':time()})
 
+    return website_config
 
 class Crawler(CrawlSpider):
 
@@ -26,12 +38,12 @@ class Crawler(CrawlSpider):
         Rule(LinkExtractor(allow=website_config['LIST_URL_PATTERNS']), follow = True, callback=None),
         Rule(LinkExtractor(allow=website_config['ITEM_URL_PATTERNS']), follow = False, callback='parse_item', process_links='filterLinks'),
     ] 
-    start_urls = [website_config['INDEX']]
-    allowed_domains = [website_config['DOMAIN']]
+    start_urls = website_config['INDEX']
+    allowed_domains = website_config['DOMAIN']
 
     def __init__(self):
         super(self.__class__, self).__init__()
-        if not settings.__dict__.get('LOG_ENABLED'):
+        if settings.__dict__.get('LOG_ENABLED') :
             log.start(logfile=self.__class__.website_config.get('LOG_FILE', 'log'), loglevel=log.INFO)
 
     def parse_item(self, response):
