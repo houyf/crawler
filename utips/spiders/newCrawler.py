@@ -23,12 +23,16 @@ class Crawler(CrawlSpider):
 
     start_urls = [settings.INDEX] 
     allowed_domains = [settings.DOMAIN]
-    name =  'newCrawler'
+    name =  'websiteSpider'
 
     rules = [
         Rule(LinkExtractor(allow=settings.LIST_URL_PATTERNS), follow = True, callback=None),
         Rule(LinkExtractor(allow=settings.ITEM_URL_PATTERNS), follow = False, callback='parse_item', process_links='filterLinks'),
     ]
+
+    def __init__(self):
+        super(self.__class__, self).__init__()
+        # log.start(loglevel=log.INFO)
 
     def parse_item(self, response):
         log.msg('parsing the response', level=log.INFO) 
@@ -39,7 +43,7 @@ class Crawler(CrawlSpider):
             titleSel = response.xpath('//h1/text()')[0]
             log.msg('the news is parse successfully', level=log.DEBUG) 
         except IndexError:
-            log.msg('the article is parse failly', level=log.ERROR)
+            log.msg('the article {url}  is parse failly'.format(url=response.url), level=log.ERROR)
             raise StopIteration
 
         art['title'] = titleSel.extract()

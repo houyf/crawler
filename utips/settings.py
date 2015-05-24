@@ -1,13 +1,4 @@
 # -*- coding: utf-8 -*-
-
-# Scrapy settings for newCrawler project
-#
-# For simplicity, this file contains only the most important settings by
-# default. All the other settings are documented here:
-#
-#     http://doc.scrapy.org/en/latest/topics/settings.html
-#
-
 BOT_NAME = 'utips'
 
 SPIDER_MODULES = ['utips.spiders']
@@ -105,8 +96,8 @@ COLLOECTION = 'zdjwc'
 # site config 
 INDEX = 'http://jwc.sysu.edu.cn/Index.aspx'
 DOMAIN = 'jwc.sysu.edu.cn'
-LIST_URL_PATTERNS = (r'Index\.aspx')
-ITEM_URL_PATTERNS = (r'\d+\.aspx')
+LIST_URL_PATTERNS = (r'/Index\.aspx')
+ITEM_URL_PATTERNS = (r'/\d+\.aspx')
 ITEM_TITLE_PATTERNS = ('//h1/text()')
 ITEM_CONTENT_PATTERNS = ('//div[@class="content"]')
 SITE_ENCODING = 'utf-8' 
@@ -119,3 +110,9 @@ IMAGE_EXTENSIONS = [
 FILE_EXTENSIONS = [
     '.xls', '.xlsx', '.ppt', '.pptx', '.doc', '.docx', '.odt', '.ods', '.odg', '.odp',
 ]
+
+# log config
+LOG_LEVEL = 'INFO'
+LOG_ENABLED = True
+LOG_FILE = '/tmp/logs/jwc.log'
+LOG_ENCODING = 'utf-8'
