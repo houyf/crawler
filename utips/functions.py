@@ -1,35 +1,10 @@
 #!/usr/bin/env python
 # coding=utf-8
-import re
 from scrapy import log
-_pattern_list = []
-
-def isArticle(url):  
-    for pattern in artUrlPatterns():
-        matchObj = re.search(pattern, url, re.M|re.I)
-        if matchObj:
-            return True 
-    return False
-
-def parseArticle(response, art):
-    try:
-        if response.url.find('jwc.sysu.edu.cn') != -1:  
-            log.msg('the news belongs to jwc.sysu.edu.cn', level=log.DEBUG) 
-            art['title'] = response.xpath('//h1/text()')[0].extract()
-            art['content'] = response.xpath('//div[@class="content"]')[0].extract()
-            art['url'] = response.url
-            log.msg('the news is parse successfully', level=log.DEBUG) 
-            return True
-        else:
-            return False
-    except IndexError:
-        log.msg('the article is parse failly', level=log.ERROR)
-        return False
-
-def artUrlPatterns():
-    if _pattern_list == []:
-         _pattern_list.append(r'http://jwc\.sysu\.edu\.cn/Item/\d+\.aspx') 
-    return _pattern_list
+from urlparse import urljoin
+from urlparse import urlparse
+from urlparse import urlunparse
+from posixpath import normpath
 
 
 def getFilename(abspath, srcEncoding='utf-8', destEncoding='utf-8'):
@@ -43,7 +18,7 @@ def getFilename(abspath, srcEncoding='utf-8', destEncoding='utf-8'):
 
 
 class LinkFilter(object):
-    
+
     _url_set = set()
 
     @classmethod
@@ -67,11 +42,6 @@ class LinkFilter(object):
         conn.close()
         return tmp_set
 
-
-from urlparse import urljoin
-from urlparse import urlparse
-from urlparse import urlunparse
-from posixpath import normpath
 
 def myUrljoin(base, url):
     """
