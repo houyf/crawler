@@ -24,8 +24,8 @@ ITEM_PIPELINES = {
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware' : None,
-    'utips.middlewares.RotateUserAgentMiddleware' :400,
-    'utips.middlewares.ProxyMiddleware' :401
+    # 'utips.middlewares.RotateUserAgentMiddleware' :400,
+    # 'utips.middlewares.ProxyMiddleware' :401
 }
 
 USER_AGENT_LIST= [
@@ -91,3 +91,31 @@ RETRY_ENABLED = False
 DOWNLOAD_TIMEOUT = 15
 # 禁止重定向
 REDIRECT_ENABLED = False
+
+
+# COMMANDS_MODULE = 'utips.commands'
+
+
+# database config
+MONGO_SERVER = 'localhost'
+MONGO_PORT = '27017' 
+MONGO_DATABASE = 'utipsV2'
+COLLOECTION = 'zdjwc'
+
+# site config 
+INDEX = 'http://jwc.sysu.edu.cn/Index.aspx'
+DOMAIN = 'jwc.sysu.edu.cn'
+LIST_URL_PATTERNS = (r'Index\.aspx')
+ITEM_URL_PATTERNS = (r'\d+\.aspx')
+ITEM_TITLE_PATTERNS = ('//h1/text()')
+ITEM_CONTENT_PATTERNS = ('//div[@class="content"]')
+SITE_ENCODING = 'utf-8' 
+
+
+IMAGE_EXTENSIONS = [
+    '.mng', '.pct', '.bmp', '.gif', '.jpg', '.jpeg', '.png', '.pst', '.psp', '.tif',
+    '.tiff', '.ai', '.drw', '.dxf', '.eps', '.ps', '.svg',
+]
+FILE_EXTENSIONS = [
+    '.xls', '.xlsx', '.ppt', '.pptx', '.doc', '.docx', '.odt', '.ods', '.odg', '.odp',
+]
