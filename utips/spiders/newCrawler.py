@@ -10,39 +10,45 @@ from scrapy.contrib.linkextractors import LinkExtractor
 from utips.functions import myUrljoin
 
 
-def getWebsitesFromMongodb():
+def fetchOneWebsiteConfig():
     import pymongo
     conn = pymongo.Connection(settings.MONGO_SERVER, settings.MONGO_PORT)
     db = conn[settings.MONGO_DATABASE]
     col = db['website']
-    websites = set([site['index'] for site in col.find()])
-    conn.close()
-    return list(websites)
+    return col.find_one()
+
 
 class Crawler(CrawlSpider):
 
-    start_urls = [settings.INDEX] 
-    allowed_domains = [settings.DOMAIN]
     name =  'websiteSpider'
-
+    website_config = fetchOneWebsiteConfig()
     rules = [
-        Rule(LinkExtractor(allow=settings.LIST_URL_PATTERNS), follow = True, callback=None),
-        Rule(LinkExtractor(allow=settings.ITEM_URL_PATTERNS), follow = False, callback='parse_item', process_links='filterLinks'),
-    ]
+        Rule(LinkExtractor(allow=website_config['LIST_URL_PATTERNS']), follow = True, callback=None),
+        Rule(LinkExtractor(allow=website_config['ITEM_URL_PATTERNS']), follow = False, callback='parse_item', process_links='filterLinks'),
+    ] 
+    start_urls = [website_config['INDEX']]
+    allowed_domains = [website_config['DOMAIN']]
 
     def __init__(self):
         super(self.__class__, self).__init__()
-        # log.start(loglevel=log.INFO)
+        if not settings.__dict__.get('LOG_ENABLED'):
+            log.start(logfile=self.__class__.website_config.get('LOG_FILE', 'log'), loglevel=log.INFO)
 
     def parse_item(self, response):
         log.msg('parsing the response', level=log.INFO) 
         art = ArticleItem()
-        try:
-            log.msg('the news belongs to jwc.sysu.edu.cn', level=log.DEBUG) 
-            contentSel = response.xpath('//div[@class="content"]')[0]
-            titleSel = response.xpath('//h1/text()')[0]
-            log.msg('the news is parse successfully', level=log.DEBUG) 
-        except IndexError:
+        log.msg('the news belongs to {domain}'.format(domain=self.__class__.website_config['DOMAIN']), level=log.DEBUG) 
+        matched = False
+        for tp, cp in zip(self.__class__.website_config['ITEM_TITLE_PATTERNS'], self.__class__.website_config['ITEM_CONTENT_PATTERNS']):
+            try:
+                contentSel = response.xpath(tp)[0]
+                titleSel = response.xpath(cp)[0]
+                log.msg('the news is parse successfully', level=log.DEBUG) 
+                matched = True
+                break
+            except IndexError:
+                continue; 
+        if not matched:
             log.msg('the article {url}  is parse failly'.format(url=response.url), level=log.ERROR)
             raise StopIteration
 
@@ -76,3 +82,12 @@ class Crawler(CrawlSpider):
                     file_urls.append(url)
         return file_urls
 
+
+def getWebsitesFromMongodb():
+    import pymongo
+    conn = pymongo.Connection(settings.MONGO_SERVER, settings.MONGO_PORT)
+    db = conn[settings.MONGO_DATABASE]
+    col = db['website']
+    websites = set([site['index'] for site in col.find()])
+    conn.close()
+    return list(websites)

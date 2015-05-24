@@ -89,18 +89,18 @@ REDIRECT_ENABLED = False
 
 # database config
 MONGO_SERVER = 'localhost'
-MONGO_PORT = '27017' 
+MONGO_PORT = 27017
 MONGO_DATABASE = 'utipsV2'
 COLLOECTION = 'zdjwc'
 
 # site config 
-INDEX = 'http://jwc.sysu.edu.cn/Index.aspx'
-DOMAIN = 'jwc.sysu.edu.cn'
-LIST_URL_PATTERNS = (r'/Index\.aspx')
-ITEM_URL_PATTERNS = (r'/\d+\.aspx')
-ITEM_TITLE_PATTERNS = ('//h1/text()')
-ITEM_CONTENT_PATTERNS = ('//div[@class="content"]')
-SITE_ENCODING = 'utf-8' 
+# INDEX = 'http://jwc.sysu.edu.cn/Index.aspx'
+# DOMAIN = 'jwc.sysu.edu.cn'
+# LIST_URL_PATTERNS = (r'/Index\.aspx')
+# ITEM_URL_PATTERNS = (r'/\d+\.aspx')
+# ITEM_TITLE_PATTERNS = ('//h1/text()')
+# ITEM_CONTENT_PATTERNS = ('//div[@class="content"]')
+# SITE_ENCODING = 'utf-8' 
 
 
 IMAGE_EXTENSIONS = [
@@ -112,7 +112,8 @@ FILE_EXTENSIONS = [
 ]
 
 # log config
-LOG_LEVEL = 'INFO'
-LOG_ENABLED = True
-LOG_FILE = '/tmp/logs/jwc.log'
-LOG_ENCODING = 'utf-8'
+# LOG_LEVEL = 'INFO'
+# LOG_ENABLED = False
+# LOG_FILE = '/tmp/logs/jwc.log'
+# LOG_ENCODING = 'utf-8'
+# LOG_STDOUT = True
