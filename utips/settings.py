@@ -113,7 +113,7 @@ FILE_EXTENSIONS = [
 
 # log config
 # LOG_LEVEL = 'INFO'
-# LOG_ENABLED = False
+LOG_ENABLED = False
 # LOG_FILE = '/tmp/logs/jwc.log'
 # LOG_ENCODING = 'utf-8'
 # LOG_STDOUT = True

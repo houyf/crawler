@@ -25,34 +25,35 @@ def fetchOneWebsiteConfig():
         website_config['DOMAIN'] = []
         website_config['ITEM_TITLE_PATTERNS'] = []
         website_config['ITEM_CONTENT_PATTERNS'] = []
+        website_config['ITEM_CONTENT_PATTERNS'] = []
     else:
-        col.update({'_id':website_config['_id']}, {'last_crawl_time':time()})
+        col.update({'_id':website_config['_id']}, {'$set': {'last_crawl_time':time()}})
 
     return website_config
+
 
 class Crawler(CrawlSpider):
 
     name =  'websiteSpider'
-    website_config = fetchOneWebsiteConfig()
-    ConfigContainer(website_config) 
+    ConfigContainer(fetchOneWebsiteConfig()) 
     rules = [
-        Rule(LinkExtractor(allow=website_config['LIST_URL_PATTERNS']), follow = True, callback=None),
-        Rule(LinkExtractor(allow=website_config['ITEM_URL_PATTERNS']), follow = False, callback='parse_item', process_links='filterLinks'),
+        Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('LIST_URL_PATTERNS')), follow = True, callback=None),
+        Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('ITEM_URL_PATTERNS')), follow = False, callback='parse_item', process_links='filterLinks'),
     ] 
-    start_urls = website_config['INDEX']
-    allowed_domains = website_config['DOMAIN']
+    start_urls = ConfigContainer.getWebsiteConfig('INDEX')
+    allowed_domains = ConfigContainer.getWebsiteConfig('DOMAIN')
 
     def __init__(self):
         super(self.__class__, self).__init__()
-        if settings.__dict__.get('LOG_ENABLED') :
-            log.start(logfile=self.__class__.website_config.get('LOG_FILE', 'log'), loglevel=log.INFO)
+        if settings.__dict__.get('LOG_ENABLED') is not None:
+            log.start(logfile=ConfigContainer.getWebsiteConfig('LOG_FILE'), loglevel=log.DEBUG)
 
     def parse_item(self, response):
         log.msg('parsing the response', level=log.INFO) 
         art = ArticleItem()
-        log.msg('the news belongs to {domain}'.format(domain=self.__class__.website_config['DOMAIN']), level=log.DEBUG) 
+        log.msg('the news belongs to {domain}'.format(domain=ConfigContainer.getWebsiteConfig('DOMAIN')), level=log.DEBUG) 
         matched = False
-        for tp, cp in zip(self.__class__.website_config['ITEM_TITLE_PATTERNS'], self.__class__.website_config['ITEM_CONTENT_PATTERNS']):
+        for tp, cp in zip(ConfigContainer.getWebsiteConfig('ITEM_TITLE_PATTERNS'), ConfigContainer.getWebsiteConfig('ITEM_CONTENT_PATTERNS')):
             try:
                 contentSel = response.xpath(tp)[0]
                 titleSel = response.xpath(cp)[0]

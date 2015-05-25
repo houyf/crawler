@@ -15,17 +15,16 @@ conn = pymongo.Connection('localhost', 27017)
 db = conn['utipsV2']
 col = db['website']
 item = {}
-item['id']  = 2
-item['note'] = '学生处'
-item['INDEX'] = ['http://xsc.sysu.edu.cn/zh-hans']
-item['DOMAIN'] = ['xsc.sysu.edu.cn']
-item['LIST_URL_PATTERNS'] = [r'/[a-zA-Z]{2,5}$']
-item['ITEM_URL_PATTERNS'] = [r'/node/\d+$']
-item['ITEM_TITLE_PATTERNS'] = ['//h1[@class="title"]/text()']
-item['ITEM_CONTENT_PATTERNS'] = ['//div[@class="content-middle"]']
+item['note'] = '教务处'
+item['INDEX'] = ['http://jwc.sysu.edu.cn/Index.aspx']
+item['DOMAIN'] = ['jwc.sysu.edu.cn']
+item['LIST_URL_PATTERNS'] = ['Index.aspx']
+item['ITEM_URL_PATTERNS'] = [r'/Item/\d+\.aspx$']
+item['ITEM_TITLE_PATTERNS'] = ['//h1[@class="art_title"]/text()']
+item['ITEM_CONTENT_PATTERNS'] = ['//div[@class="content"]']
 item['SITE_ENCODING'] = 'utf-8' 
-item['TABLE'] = 'xsc'
-item['LOG_FILE'] = '/tmp/logs/xsc.log'
+item['TABLE'] = 'jwc'
+item['LOG_FILE'] = '/tmp/logs/jwc.log'
 item['last_crawl_time'] = time.time() - 12*3600
 try:
     db.create_collection(item['TABLE'])
