@@ -37,8 +37,8 @@ class Crawler(CrawlSpider):
     name =  'websiteSpider'
     ConfigContainer(fetchOneWebsiteConfig()) 
     rules = [
-        Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('LIST_URL_PATTERNS')), follow = True, callback=None),
         Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('ITEM_URL_PATTERNS')), follow = False, callback='parse_item', process_links='filterLinks'),
+        Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('LIST_URL_PATTERNS')), follow = True, callback=None),
     ] 
     start_urls = ConfigContainer.getWebsiteConfig('INDEX')
     allowed_domains = ConfigContainer.getWebsiteConfig('DOMAIN')
