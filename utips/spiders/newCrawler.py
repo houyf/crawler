@@ -9,8 +9,8 @@ import utips.settings as settings
 from scrapy.contrib.linkextractors import LinkExtractor
 from utips.functions import myUrljoin
 from time import time
+from utips.config import ConfigContainer
 import pymongo
-
 
 def fetchOneWebsiteConfig():
     conn = pymongo.Connection(settings.MONGO_SERVER, settings.MONGO_PORT)
@@ -34,6 +34,7 @@ class Crawler(CrawlSpider):
 
     name =  'websiteSpider'
     website_config = fetchOneWebsiteConfig()
+    ConfigContainer(website_config) 
     rules = [
         Rule(LinkExtractor(allow=website_config['LIST_URL_PATTERNS']), follow = True, callback=None),
         Rule(LinkExtractor(allow=website_config['ITEM_URL_PATTERNS']), follow = False, callback='parse_item', process_links='filterLinks'),

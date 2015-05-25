@@ -17,5 +17,6 @@ class ArticleItem(scrapy.Item):
     image_paths = scrapy.Field()
     files = scrapy.Field()
     file_urls = scrapy.Field()
+    table_to_save = scrapy.Field()
 
 

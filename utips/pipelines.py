@@ -3,6 +3,7 @@ import pymongo
 import time
 from scrapy.contrib.pipeline.images import ImagesPipeline, FilesPipeline
 from scrapy import Request
+from config import ConfigContainer
 
 class MongoStorePipeline(object):
     
@@ -25,7 +26,7 @@ class MongoStorePipeline(object):
         self.client.close()
     
     def process_item(self, item, spider):
-        collection_name = item.__class__.__name__
+        collection_name = ConfigContainer.getWebsiteConfig('TABLE')
         self.before_save_item(item)
         data = dict(item)
         if data.get('image_urls') is not None:

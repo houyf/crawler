@@ -5,6 +5,7 @@ from urlparse import urljoin
 from urlparse import urlparse
 from urlparse import urlunparse
 from posixpath import normpath
+from config import ConfigContainer
 
 
 def getFilename(abspath, srcEncoding='utf-8', destEncoding='utf-8'):
@@ -37,7 +38,7 @@ class LinkFilter(object):
         import pymongo
         conn = pymongo.Connection('127.0.0.1', 27017)
         db = conn['utipsV2']
-        col = db['ArticleItem']
+        col = db[ConfigContainer.getWebsiteConfig('TABLE')]
         tmp_set = set([link['url'] for link in col.find()])
         conn.close()
         return tmp_set
