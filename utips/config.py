@@ -8,4 +8,4 @@ class ConfigContainer(object):
 
     @classmethod 
     def getWebsiteConfig(cls, key):
-        return cls._website_config[key]
+        return cls._website_config.get(key, None)

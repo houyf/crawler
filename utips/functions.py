@@ -15,6 +15,7 @@ def getFilename(abspath, srcEncoding='utf-8', destEncoding='utf-8'):
     """
     import os 
     from urllib import unquote
+    srcEncoding = ConfigContainer.getWebsiteConfig('SITE_ENCODING')
     return os.path.basename(unquote(abspath).decode(srcEncoding).encode(destEncoding))
 
 

@@ -15,22 +15,23 @@ conn = pymongo.Connection('localhost', 27017)
 db = conn['utipsV2']
 col = db['website']
 item = {}
-item['note'] = '法学院'
-item['INDEX'] = ['http://law.sysu.edu.cn']
-item['DOMAIN'] = ['law.sysu.edu.cn']
-item['LIST_URL_PATTERNS'] = []
-item['ITEM_URL_PATTERNS'] = [r'/node/\d+$']
-item['ITEM_TITLE_PATTERNS'] = ['//h1[@class="title"]/text()']
-item['ITEM_CONTENT_PATTERNS'] = ['//div[@class="content clearfix"]']
+item['note'] = '中山大学新闻网 （content的元素是第三个p元素）'
+item['INDEX'] = ['http://news2.sysu.edu.cn']
+item['DOMAIN'] = ['news2.sysu.edu.cn']
+item['LIST_URL_PATTERNS'] = [r'index\.htm']
+item['ITEM_URL_PATTERNS'] = [r'\d{4,}\.htm']
+item['ITEM_TITLE_PATTERNS'] = ['//h1/text()']
+item['ITEM_CONTENT_PATTERNS']=['//div[@class="cont"]']
 item['SITE_ENCODING'] = 'utf-8' 
-item['TABLE'] = 'law'
-item['LOG_FILE'] = '/tmp/logs/law.log'
+item['TABLE'] = 'news2'
+item['LOG_FILE'] = '/tmp/logs/new2.log'
 item['last_crawl_time'] = time.time() - 12*3600
+
 try:
     db.create_collection(item['TABLE'])
 except pymongo.errors.CollectionInvalid:
     logging.info('the table %s has been created'% item['TABLE'])
-    col.update({'INDEX': item['INDEX']}, item)
+    col.update({'note': item['note']}, item)
     logging.info('%s 更新成功'%item['note'])
 else:
     col.insert(item)

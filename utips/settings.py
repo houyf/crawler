@@ -15,8 +15,8 @@ ITEM_PIPELINES = {
 
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware' : None,
-    # 'utips.middlewares.RotateUserAgentMiddleware' :400,
-    # 'utips.middlewares.ProxyMiddleware' :401
+    'utips.middlewares.RotateUserAgentMiddleware' :400,
+    #'utips.middlewares.ProxyMiddleware' :401
 }
 
 USER_AGENT_LIST= [
@@ -113,7 +113,7 @@ FILE_EXTENSIONS = [
 
 # log config
 # LOG_LEVEL = 'INFO'
-LOG_ENABLED = False
+# LOG_ENABLED = False
 # LOG_FILE = '/tmp/logs/jwc.log'
 # LOG_ENCODING = 'utf-8'
 # LOG_STDOUT = True
