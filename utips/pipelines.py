@@ -2,7 +2,6 @@
 import pymongo
 import time
 from scrapy.contrib.pipeline.images import ImagesPipeline, FilesPipeline
-from scrapy import Request
 from config import ConfigContainer
 
 class MongoStorePipeline(object):
@@ -44,6 +43,7 @@ class MongoStorePipeline(object):
         pass
 
     def before_save_item(self, item):
+        item['isHandled'] = False
         item['crawl_time']  = time.time()  
         self._replaceUrls(item) 
 

@@ -18,5 +18,6 @@ class ArticleItem(scrapy.Item):
     files = scrapy.Field()
     file_urls = scrapy.Field()
     table_to_save = scrapy.Field()
+    isHandled = scrapy.Field()
 
 

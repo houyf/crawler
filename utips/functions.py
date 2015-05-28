@@ -36,11 +36,13 @@ class LinkFilter(object):
 
     @classmethod
     def _getUrlFromMongodb(cls):
+        import logging
         import pymongo
         conn = pymongo.Connection('127.0.0.1', 27017)
         db = conn['utipsV2']
         col = db[ConfigContainer.getWebsiteConfig('TABLE')]
-        tmp_set = set([link['url'] for link in col.find()])
+        logging.info(str(col.find()));
+        tmp_set = set([link['url'] for link in col.find({}, {'url':1})])
         conn.close()
         return tmp_set
 

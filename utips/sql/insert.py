@@ -15,16 +15,22 @@ conn = pymongo.Connection('localhost', 27017)
 db = conn['utipsV2']
 col = db['website']
 item = {}
-item['note'] = '中山大学新闻网 （content的元素是第三个p元素）'
-item['INDEX'] = ['http://news2.sysu.edu.cn']
-item['DOMAIN'] = ['news2.sysu.edu.cn']
-item['LIST_URL_PATTERNS'] = [r'index\.htm']
-item['ITEM_URL_PATTERNS'] = [r'\d{4,}\.htm']
+item['note'] = '有代理网'
+item['INDEX'] = [
+    'http://www.youdaili.net/Daili/http/list_1.html',
+    'http://www.youdaili.net/Daili/http/list_16.html', 
+    'http://www.youdaili.net/Daili/http/list_26.html',
+    ]
+item['DOMAIN'] = ['www.youdaili.net']
+item['LIST_URL_PATTERNS'] = [r'/Daili/http/list_\d+\.html']
+item['ITEM_URL_PATTERNS'] = [r'/Daili/http/\d+\.html']
+# 标题和文章的每一个匹配规则: 当匹配的是第一个节点时，不需要下标（为0）
+# 当匹配的节点是有一定下标的节点时,使用列表形式记录
 item['ITEM_TITLE_PATTERNS'] = ['//h1/text()']
-item['ITEM_CONTENT_PATTERNS']=['//div[@class="cont"]']
+item['ITEM_CONTENT_PATTERNS']=['//div[@class="cont_font"]/p/text()']
 item['SITE_ENCODING'] = 'utf-8' 
-item['TABLE'] = 'news2'
-item['LOG_FILE'] = '/tmp/logs/new2.log'
+item['TABLE'] = 'youdaili'
+item['LOG_FILE'] = '/tmp/logs/youdaili.log'
 item['last_crawl_time'] = time.time() - 12*3600
 
 try:

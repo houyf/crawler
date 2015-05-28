@@ -37,8 +37,8 @@ class Crawler(CrawlSpider):
     name =  'websiteSpider'
     ConfigContainer(fetchOneWebsiteConfig()) 
     rules = [
-        Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('ITEM_URL_PATTERNS')), follow = False, callback='parse_item', process_links='filterLinks'),
-        Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('LIST_URL_PATTERNS')), follow = True, callback=None),
+        Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('ITEM_URL_PATTERNS')), follow = False, callback='parse_item',process_links='filterLinks'),
+        Rule(LinkExtractor(allow=ConfigContainer.getWebsiteConfig('LIST_URL_PATTERNS')), follow = True, callback=None, process_links='filterLinks'),
     ] 
     start_urls = ConfigContainer.getWebsiteConfig('INDEX')
     allowed_domains = ConfigContainer.getWebsiteConfig('DOMAIN')
@@ -54,9 +54,9 @@ class Crawler(CrawlSpider):
         log.msg('the news belongs to {domain}'.format(domain=ConfigContainer.getWebsiteConfig('DOMAIN')), level=log.DEBUG) 
         matched = False
         for tp, cp in zip(ConfigContainer.getWebsiteConfig('ITEM_TITLE_PATTERNS'), ConfigContainer.getWebsiteConfig('ITEM_CONTENT_PATTERNS')):
-            try:
-                contentSel = response.xpath(tp)[0]
-                titleSel = response.xpath(cp)[0]
+            try: 
+                titleSel = response.xpath(tp)
+                contentSel = response.xpath(cp)
                 log.msg('the news is parse successfully', level=log.DEBUG) 
                 matched = True
                 break
@@ -66,8 +66,12 @@ class Crawler(CrawlSpider):
             log.msg('the article {url}  is parse failly'.format(url=response.url), level=log.ERROR)
             raise StopIteration
 
-        art['title'] = titleSel.extract()
-        art['content'] = contentSel.extract()
+        art['title'] = ''
+        for sel in titleSel:
+            art['title'] += sel.extract()
+        art['content'] = ''
+        for sel in contentSel:
+            art['content'] += sel.extract()
         art['url'] = response.url
         art['image_urls'] =  self.imageUrlsOfArticle(contentSel, response)
         art['file_urls'] =  self.fileUrlsOfArticle(contentSel, response)
@@ -76,8 +80,13 @@ class Crawler(CrawlSpider):
     def filterLinks(self, links):
         return filter(LinkFilter.duplicate , links) 
 
-    def imageUrlsOfArticle(self, contentSelc, response):        
-        urls = contentSelc.xpath('//a[@href]/@href').extract()
+    def imageUrlsOfArticle(self, contentSel, response):        
+        urls = []
+        if isinstance(contentSel, list): 
+            for sel in contentSel:
+                urls.extend(contentSel.xpath('//a[@href]/@href').extract())
+        else:
+            urls = contentSel.xpath('//a[@href]/@href').extract()
         image_urls = []            
         for url in urls:
             for e in settings.IMAGE_EXTENSIONS:
