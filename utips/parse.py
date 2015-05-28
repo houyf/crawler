@@ -3,6 +3,7 @@
 import socket
 import logging
 import threading
+import time
 
 class Item(dict):
     pass
@@ -36,6 +37,9 @@ def singletonThreadSave(cls):
 
 
 def Lock(func):
+    """
+    给一个函数加锁
+    """
     import threading
     lock = threading.Lock() 
     def wrapper(*args, **kw):
@@ -49,7 +53,6 @@ def Lock(func):
 
 @singleton
 class IpPool(object):
-    
     def __init__(self):
         self._ipPool = self.getIpSaved()
 
@@ -93,24 +96,28 @@ def fetchContent():
     page = conn['youdaili'].find_and_modify({'isHandled':False}, {'$set':{'isHandled':True}})
     return  page if page is None else page.get('content', None) 
 
+
 def parse(content):
     try:
-        print content
-        lines = content.split('<br>')
+        content = content.replace('<br>', '')
+        lines = content.split('\r\n')
         lines = map(lambda x: x.strip(), lines)
-        import re
-        lines = map(lambda x: re.findall(r'\d+.*', x)[0], lines)
         def parse_item(line):
-            ip, rest = line.split(':')
-            port, rest = rest.split('@')
-            protocol, info = rest.split('#')
-            item = Item()
-            item['ip'] = ip
-            item['port'] = int(port)
-            item['protocol'] = protocol
-            item['info'] = info
-            return item
-        return map(parse_item, lines)
+            try:
+                ip, rest = line.split(':')
+                port, rest = rest.split('@')
+                protocol, info = rest.split('#')
+                item = Item()
+                item['ip'] = ip
+                item['port'] = int(port)
+                item['protocol'] = protocol
+                item['info'] = info
+            except:
+                return None
+            else:
+                return item
+        lines = map(parse_item, lines)
+        return filter(lambda x: x is not None, lines)
     except :
         logging.error('content is fail to parse to parse')
         return []
@@ -124,19 +131,24 @@ def saveItem(item):
     conn[collection_name].insert(item)
     
 
-def checkProxy(item, timeout = 3):
+def proxyCost(item, timeout = 3, testNum = 3):
     """
     测试代理是否可用
     """
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
     s.settimeout(timeout) 
     try:
-        s.connect((item['ip'], item['port']))
+        cost  = []
+        for i in xrange(0, testNum): 
+            start = time.time()
+            s.connect((item['ip'], item['port']))
+            cost.apend(time.time() - start)
+            s.close()
         logging.info('{ip}:{port} is useful'.format(ip=item['ip'], port=item['port']))
-        return True
+        return sum(cost/len(cost))  
     except socket.error:
         logging.info('{ip}:{port} is useless'.format(ip=item['ip'], port=item['port']))
-        return False
+        return 10 
 
 
 def work():
@@ -146,23 +158,24 @@ def work():
     content = fetchContent()
     if content is None:
         logging.info('worker%s exit normally.'% threading.current_thread())
+        exit(0)
     # while content:
     items = parse(content)
     ipPool = IpPool();
     for i in items:
-        if i['ip'] not in ipPool.getIpPool() and checkProxy(i):
+        if i['ip'] not in ipPool.getIpPool() and proxyCost(i) < 2:
             ipPool.insert(i['ip'])
             saveItem(i)
         # content = fetchContent()
 
-if __name__ == '__ain__':
+if __name__ == '__main__':
 
     logging.basicConfig(level=logging.DEBUG,
         format='%(asctime)s %(levelname)s  %(message)s',
         datefmt='%a, %d %b %Y %H:%M:%S'
     )
     threads = []
-    n = 1
+    n = 150
     for i in xrange(0, n):
         t = threading.Thread(target=work, name='worker{id}'.format(id=threading.current_thread()))
         t.start() 
