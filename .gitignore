@@ -1,3 +1,4 @@
 utips/images/
 utips/files/
 *.pyc
+utips/.tmp

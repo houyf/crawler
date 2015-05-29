@@ -57,6 +57,8 @@ class Crawler(CrawlSpider):
             try: 
                 titleSel = response.xpath(tp)
                 contentSel = response.xpath(cp)
+                if not (titleSel and contentSel):
+                    continue
                 log.msg('the news is parse successfully', level=log.DEBUG) 
                 matched = True
                 break
