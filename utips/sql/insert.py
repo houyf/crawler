@@ -14,7 +14,10 @@ logging.basicConfig(level=logging.DEBUG,
 conn = pymongo.Connection('localhost', 27017)
 db = conn['utipsV2']
 col = db['website']
+max_id = col.find({},{'id':1}).sort('id', pymongo.DESCENDING).limit(1)[0]['id']
+
 item = {}
+item['id'] = max_id + 1
 item['note'] = '中大青年时空'
 item['INDEX'] = ['http://zdtw.sysu.edu.cn/']
 item['DOMAIN'] = ['zdtw.sysu.edu.cn']
